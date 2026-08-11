@@ -1,8 +1,8 @@
 const userModel = require('../model/user.model.js')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken');
-
 const { response } = require('../app.js');
+const foodPartnerModel = require('../model/foodpartner.model.js');
 
 async function registerUser(req, res) {
     const { username, email, password } = req.body;
@@ -72,4 +72,82 @@ async function loginUser(req, res) {
     })
 }
 
-module.exports = { registerUser, loginUser }
+async function logoutUser(req,res) {
+    res.clearCookie("token")
+    res.status(200).json({
+        message : "User logged out successfully"
+    })
+}
+
+async function registerfoodpartner(req,res) {
+    const {name , email , password} = req.body 
+    const isAccoundAlreadyExist = await foodPartnerModel.findOne({
+        email
+    })
+    if (isAccoundAlreadyExist) {
+        return res.status(400).json({
+            message : "Food Partner account already exists"
+        })
+    }
+    const hashedpassword = await bcrypt.hash(password , 10)
+    const foodPartner = await foodPartnerModel.create({
+        name , email , password : hashedpassword
+    })
+    const token = jwt.sign({
+        id : foodPartner._id
+    } , process.env.JWT_SECRET)
+
+    res.cookie("token" , token)
+
+    res.status(201).json({
+        message : "Food partner registered successfully",
+        foodPartner : {
+            _id : foodPartner._id,
+            email : foodPartner.email,
+            name : foodPartner.name
+        }
+    })
+}
+
+async function loginfoodpartner(req,res) {
+    const {email , password } = req.body
+
+    const foodPartner = await foodPartnerModel.findOne({
+        email
+    })
+    if (!foodPartner) {
+        return res.status(400).json({
+            message : "Invalid Email or Password"
+        })
+    }
+
+    const isPasswordValid = await bcrypt.compare(password , foodPartner.password)
+    if (!isPasswordValid) {
+        return res.status(400).json({
+            message : "Invalid Email or Passowrd"
+        })
+    }
+
+    const token = jwt.sign({
+        id : foodPartner._id
+    } , process.env.JWT_SECRET)
+    res.cookie("token" , token)
+
+    res.status(200).json({
+        message : "Food Partner Logged in successfully!",
+        foodPartner : {
+            id : foodPartner._id ,
+            email : foodPartner.email,
+            name : foodPartner.name
+        }
+    })
+}
+
+function logoutFoodPartner(req,res) {
+    res.clearCookie("token")
+    res.status(200).json({
+        message : "Food Partner logged out successfully"
+    })
+}
+
+module.exports = { registerUser, loginUser , logoutUser , registerfoodpartner , loginfoodpartner , logoutFoodPartner}
