@@ -1,6 +1,6 @@
 # JUUmato
 
-A simple MERN-style starter app with a Node.js + Express backend, MongoDB user model, and authentication routes.
+A MERN-style starter app with a Node.js + Express backend, MongoDB persistence, authentication, and food partner upload APIs.
 
 ## Project structure
 
@@ -9,38 +9,48 @@ A simple MERN-style starter app with a Node.js + Express backend, MongoDB user m
   - `src/app.js` - Express app configuration
   - `src/db/db.js` - MongoDB connection helper
   - `src/routes/auth.routes.js` - authentication route definitions
-  - `src/controller/auth.controller.js` - register/login controller logic
-  - `src/model/user.model.js` - MongoDB user schema
+  - `src/routes/food.routes.js` - food upload and listing routes
+  - `src/controller/auth.controller.js` - user and food partner auth logic
+  - `src/controller/food.controller.js` - food item creation and retrieval
+  - `src/model/user.model.js` - user schema
+  - `src/model/foodpartner.model.js` - food partner schema
+  - `src/model/fooditem.model.js` - food item schema
+  - `src/services/storage.service.js` - ImageKit file upload service
 - `frontend/` - frontend application folder (not documented here)
 
 ## Features
 
-- User registration
-- User login
-- Password hashing with `bcryptjs`
-- JWT token creation stored in an HTTP cookie
-- MongoDB persistence via Mongoose
+- User registration and login
+- Food partner registration and login
+- JWT authentication stored in cookies
+- MongoDB persistence with Mongoose
+- ImageKit-based video uploading for food items
+- Protected food creation and listing endpoints
 
 ## Requirements
 
 - Node.js 18+ (or compatible)
 - npm
 - MongoDB database
+- ImageKit account and API keys for file upload
 
 ## Setup
 
-1. Open a terminal and install backend dependencies:
+1. Install backend dependencies:
 
 ```bash
 cd backend
 npm install
 ```
 
-2. Create a `.env` file in `backend/` with the following values:
+2. Create a `.env` file in `backend/` with the required values:
 
 ```env
 MONGODB_URI=<your-mongodb-connection-string>
 JWT_SECRET=<your-jwt-secret>
+IMAGEKIT_PUBLIC_KEY=<your-imagekit-public-key>
+IMAGEKIT_PRIVATE_KEY=<your-imagekit-private-key>
+IMAGEKIT_URL_ENDPOINT=<your-imagekit-url-endpoint>
 ```
 
 3. Start the development server:
@@ -59,7 +69,9 @@ The backend listens on port `3000` by default.
 
 ## API Endpoints
 
-### Register new user
+### User authentication
+
+#### Register user
 
 - URL: `POST /api/auth/user/register`
 - Body:
@@ -67,7 +79,7 @@ The backend listens on port `3000` by default.
   - `email` (string)
   - `password` (string)
 
-Example request body:
+Example:
 
 ```json
 {
@@ -77,14 +89,14 @@ Example request body:
 }
 ```
 
-### Login user
+#### Login user
 
 - URL: `POST /api/auth/user/login`
 - Body:
   - `email` (string)
   - `password` (string)
 
-Example request body:
+Example:
 
 ```json
 {
@@ -93,8 +105,50 @@ Example request body:
 }
 ```
 
+#### Logout user
+
+- URL: `GET /api/auth/user/logout`
+
+### Food partner authentication
+
+#### Register food partner
+
+- URL: `POST /api/auth/food-partner/register`
+- Body:
+  - `name` (string)
+  - `email` (string)
+  - `password` (string)
+
+#### Login food partner
+
+- URL: `POST /api/auth/food-partner/login`
+- Body:
+  - `email` (string)
+  - `password` (string)
+
+#### Logout food partner
+
+- URL: `GET /api/auth/food-partner/logout`
+
+### Food endpoints
+
+#### Create food item
+
+- URL: `POST /api/food`
+- Protected by food partner authentication
+- Content type: `multipart/form-data`
+- Fields:
+  - `video` (file)
+  - `name` (string)
+  - `description` (string)
+
+#### List food items
+
+- URL: `GET /api/food/`
+- Protected by regular user authentication
+
 ## Notes
 
-- The server sets a JWT cookie on successful registration and login.
-- The backend currently exposes only authentication routes.
-- Add frontend instructions in `frontend/` once that app is configured.
+- Authentication uses a JWT stored in a cookie named `token`.
+- Food creation uploads a video file via ImageKit and stores the returned URL.
+- Update `frontend/` documentation once the client app is ready.
