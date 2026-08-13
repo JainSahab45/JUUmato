@@ -145,7 +145,7 @@ Example:
 #### List food items
 
 - URL: `GET /api/food/`
-- Protected by regular user authentication
+- Protected by regular user authentication . 
 
 ## Notes
 
