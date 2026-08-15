@@ -7,6 +7,9 @@ router.post("/user/register" , authcontroller.registerUser)
 router.post("/user/login" , authcontroller.loginUser)
 router.get("/user/logout" , authcontroller.logoutUser)
 
+// unified auth check
+router.get("/me", authcontroller.getMe)
+
 // food partner auth apis
 router.get("/food-partner/logout" , authcontroller.logoutFoodPartner)
 router.post("/food-partner/register" , authcontroller.registerfoodpartner)

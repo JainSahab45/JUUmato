@@ -4,6 +4,13 @@ const cookieparser = require('cookie-parser')
 const authroutes = require('./routes/auth.routes')
 const foodroutes = require('./routes/food.routes')
 const app = express();
+const cors = require('cors');
+
+app.use(cors({
+    origin: ['http://localhost:5173', 'http://localhost:5174'],
+    credentials: true
+}))
+
 app.use(cookieparser());
 app.use(express.json());
 
