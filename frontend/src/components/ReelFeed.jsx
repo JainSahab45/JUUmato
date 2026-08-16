@@ -6,8 +6,9 @@ import { Link } from 'react-router-dom'
 // - items: Array of video items { _id, video, description, likeCount, savesCount, commentsCount, comments, foodPartner }
 // - onLike: (item) => void | Promise<void>
 // - onSave: (item) => void | Promise<void>
+// - onAddToCart: (item) => void | Promise<void>
 // - emptyMessage: string
-const ReelFeed = ({ items = [], onLike, onSave, emptyMessage = 'No videos yet.' }) => {
+const ReelFeed = ({ items = [], onLike, onSave, onAddToCart, emptyMessage = 'No videos yet.' }) => {
   const videoRefs = useRef(new Map())
 
   useEffect(() => {
@@ -92,6 +93,21 @@ const ReelFeed = ({ items = [], onLike, onSave, emptyMessage = 'No videos yet.' 
                     </svg>
                   </button>
                   <div className="reel-action__count">{item.commentsCount ?? (Array.isArray(item.comments) ? item.comments.length : 0)}</div>
+                </div>
+
+                <div className="reel-action-group">
+                  <button
+                    onClick={onAddToCart ? () => onAddToCart(item) : undefined}
+                    className="reel-action"
+                    aria-label="Add to cart"
+                    title="Add to cart"
+                  >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="9" cy="21" r="1"/>
+                      <circle cx="20" cy="21" r="1"/>
+                      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                    </svg>
+                  </button>
                 </div>
               </div>
 

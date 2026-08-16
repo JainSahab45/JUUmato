@@ -17,6 +17,9 @@ const ChooseRegister = () => {
           <Link to="/food-partner/register" className="auth-submit" style={{textDecoration:'none', background:'var(--color-surface-alt)', color:'var(--color-text)', border:'1px solid var(--color-border)'}}>
             Register as food partner
           </Link>
+          <Link to="/delivery-partner/register" className="auth-submit" style={{textDecoration:'none', background:'rgba(239, 68, 68, 0.08)', color:'var(--color-text)', border:'1px solid rgba(239, 68, 68, 0.25)'}}>
+            Register as delivery partner
+          </Link>
         </div>
         <div className="auth-alt-action" style={{marginTop:'4px'}}>
           Already have an account? <Link to="/user/login">Sign in</Link>

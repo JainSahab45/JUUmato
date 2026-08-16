@@ -2,6 +2,7 @@ const userModel = require('../model/user.model.js')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken');
 const foodPartnerModel = require('../model/foodpartner.model.js');
+const deliveryPartnerModel = require('../model/deliverypartner.model.js');
 
 async function registerUser(req, res) {
     const { username, email, password } = req.body;
@@ -171,6 +172,80 @@ function logoutFoodPartner(req, res) {
     })
 }
 
+async function registerDeliveryPartner(req, res) {
+    const { name, email, password, phone, vehicle, zone } = req.body
+    const existing = await deliveryPartnerModel.findOne({ email })
+    if (existing) {
+        return res.status(400).json({ message: 'Delivery partner account already exists' })
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+    const deliveryPartner = await deliveryPartnerModel.create({
+        name,
+        email,
+        password: hashedPassword,
+        phone,
+        vehicle,
+        zone,
+    })
+
+    const token = jwt.sign({ id: deliveryPartner._id }, process.env.JWT_SECRET)
+    res.cookie('token', token, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: false,
+    })
+
+    return res.status(201).json({
+        message: 'Delivery partner registered successfully',
+        deliveryPartner: {
+            _id: deliveryPartner._id,
+            email: deliveryPartner.email,
+            name: deliveryPartner.name,
+            phone: deliveryPartner.phone,
+            vehicle: deliveryPartner.vehicle,
+            zone: deliveryPartner.zone,
+        }
+    })
+}
+
+async function loginDeliveryPartner(req, res) {
+    const { email, password } = req.body
+    const deliveryPartner = await deliveryPartnerModel.findOne({ email })
+    if (!deliveryPartner) {
+        return res.status(400).json({ message: 'Invalid email or password' })
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, deliveryPartner.password)
+    if (!isPasswordValid) {
+        return res.status(400).json({ message: 'Invalid email or password' })
+    }
+
+    const token = jwt.sign({ id: deliveryPartner._id }, process.env.JWT_SECRET)
+    res.cookie('token', token, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: false,
+    })
+
+    return res.status(200).json({
+        message: 'Delivery partner logged in successfully',
+        deliveryPartner: {
+            _id: deliveryPartner._id,
+            email: deliveryPartner.email,
+            name: deliveryPartner.name,
+            phone: deliveryPartner.phone,
+            vehicle: deliveryPartner.vehicle,
+            zone: deliveryPartner.zone,
+        }
+    })
+}
+
+function logoutDeliveryPartner(req, res) {
+    res.clearCookie('token')
+    res.status(200).json({ message: 'Delivery partner logged out successfully' })
+}
+
 async function getMe(req, res) {
     const token = req.cookies.token;
     if (!token) {
@@ -186,10 +261,14 @@ async function getMe(req, res) {
         if (foodPartner) {
             return res.status(200).json({ loggedIn: true, role: 'food-partner', foodPartner });
         }
+        let deliveryPartner = await deliveryPartnerModel.findById(decoded.id).select("-password");
+        if (deliveryPartner) {
+            return res.status(200).json({ loggedIn: true, role: 'delivery-partner', deliveryPartner });
+        }
         return res.status(200).json({ loggedIn: false });
     } catch (err) {
         return res.status(200).json({ loggedIn: false });
     }
 }
 
-module.exports = { registerUser, loginUser, logoutUser, registerfoodpartner, loginfoodpartner, logoutFoodPartner, getMe }
+module.exports = { registerUser, loginUser, logoutUser, registerfoodpartner, loginfoodpartner, logoutFoodPartner, registerDeliveryPartner, loginDeliveryPartner, logoutDeliveryPartner, getMe }

@@ -56,11 +56,30 @@ const Home = () => {
         } : v))
     }
 
+    function addToCart(item) {
+        const cart = JSON.parse(localStorage.getItem('juumato-cart') || '[]')
+        const existing = cart.find((c) => c._id === item._id)
+        if (existing) {
+            existing.quantity = (existing.quantity || 1) + 1
+        } else {
+            cart.push({
+                _id: item._id,
+                name: item.name,
+                price: item.price ?? 100,
+                foodPartner: item.foodPartner,
+                quantity: 1,
+            })
+        }
+        localStorage.setItem('juumato-cart', JSON.stringify(cart))
+        alert('Added to cart')
+    }
+
     return (
         <ReelFeed
             items={videos}
             onLike={likeVideo}
             onSave={saveVideo}
+            onAddToCart={addToCart}
             emptyMessage="No videos available."
         />
     )

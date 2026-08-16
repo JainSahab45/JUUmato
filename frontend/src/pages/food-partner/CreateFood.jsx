@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const CreateFood = () => {
     const [ name, setName ] = useState('');
     const [ description, setDescription ] = useState('');
+    const [ price, setPrice ] = useState('120');
     const [ videoFile, setVideoFile ] = useState(null);
     const [ videoURL, setVideoURL ] = useState('');
     const [ fileError, setFileError ] = useState('');
@@ -59,6 +60,7 @@ const CreateFood = () => {
 
         formData.append('name', name);
         formData.append('description', description);
+        formData.append('price', price);
         formData.append('video', videoFile);
 
         try {
@@ -75,7 +77,7 @@ const CreateFood = () => {
         }
     };
 
-    const isDisabled = useMemo(() => !name.trim() || !videoFile, [ name, videoFile ]);
+    const isDisabled = useMemo(() => !name.trim() || !videoFile || !price, [ name, videoFile, price ]);
 
     return (
         <div className="create-food-page">
@@ -161,6 +163,20 @@ const CreateFood = () => {
                             placeholder="Write a short description: ingredients, taste, spice level, etc."
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="field-group">
+                        <label htmlFor="foodPrice">Price (₹)</label>
+                        <input
+                            id="foodPrice"
+                            type="number"
+                            placeholder="e.g., 120"
+                            value={price}
+                            onChange={(e) => setPrice(e.target.value)}
+                            min="10"
+                            max="500"
+                            required
                         />
                     </div>
 
