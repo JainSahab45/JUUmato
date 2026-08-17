@@ -1,26 +1,25 @@
-// create server 
+// create server
 const express = require('express');
-const cookieparser = require('cookie-parser')
-const authroutes = require('./routes/auth.routes')
-const foodroutes = require('./routes/food.routes')
-const orderRoutes = require('./routes/order.routes')
-const app = express();
+const cookieParser = require('cookie-parser');
+const authRoutes = require('./routes/auth.routes');
+const foodRoutes = require('./routes/food.routes');
+const foodPartnerRoutes = require('./routes/food-partner.routes');
 const cors = require('cors');
 
+const app = express();
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174'],
+    origin: "http://localhost:5173",
     credentials: true
-}))
-
-app.use(cookieparser());
+}));
+app.use(cookieParser());
 app.use(express.json());
 
-app.get('/' , (req,res) => {
-    res.send("Hello USER")
+app.get("/", (req, res) => {
+    res.send("Hello World");
 })
 
-app.use('/api/auth' , authroutes)
-app.use('/api/food' , foodroutes)
-app.use('/api/orders', orderRoutes)
+app.use('/api/auth', authRoutes);
+app.use('/api/food', foodRoutes);
+app.use('/api/food-partner', foodPartnerRoutes);
 
-module.exports = app
+module.exports = app;

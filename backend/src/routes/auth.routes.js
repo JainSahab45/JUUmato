@@ -1,23 +1,20 @@
 const express = require('express');
-const authcontroller = require("../controller/auth.controller")
+const authController = require("../controllers/auth.controller")
+
 const router = express.Router();
 
-//user auth api
-router.post("/user/register" , authcontroller.registerUser)
-router.post("/user/login" , authcontroller.loginUser)
-router.get("/user/logout" , authcontroller.logoutUser)
+// user auth APIs
+router.post('/user/register', authController.registerUser)
+router.post('/user/login', authController.loginUser)
+router.get('/user/logout', authController.logoutUser)
 
-// unified auth check
-router.get("/me", authcontroller.getMe)
 
-// food partner auth apis
-router.get("/food-partner/logout" , authcontroller.logoutFoodPartner)
-router.post("/food-partner/register" , authcontroller.registerfoodpartner)
-router.post("/food-partner/login" , authcontroller.loginfoodpartner)
 
-// delivery partner auth apis
-router.get("/delivery-partner/logout", authcontroller.logoutDeliveryPartner)
-router.post("/delivery-partner/register", authcontroller.registerDeliveryPartner)
-router.post("/delivery-partner/login", authcontroller.loginDeliveryPartner)
+// food partner auth APIs
+router.post('/food-partner/register', authController.registerFoodPartner)
+router.post('/food-partner/login', authController.loginFoodPartner)
+router.get('/food-partner/logout', authController.logoutFoodPartner)
 
-module.exports = router ;
+
+
+module.exports = router;
