@@ -1,207 +1,152 @@
-# JUUMATO Campus Food Ordering Platform - Feature Roadmap
+# JUUMATO API — Feature Roadmap
 
-## 📋 Mission Statement
-JUUMATO, a campus-focused food ordering platform enabling students to order from campus cafés and nearby restaurants with hostel-based delivery, real-time order tracking, and role-based restaurant/delivery management.
+## Mission
+
+REST API for a campus food ordering platform enabling students to order from campus cafés and nearby restaurants with hostel-based delivery, order tracking, and role-based restaurant/delivery management.
 
 ---
 
-## ✅ Phase 1: CORE PLATFORM (COMPLETED)
+## Phase 1: Core API (Completed)
 
-### User Authentication & Roles
-- ✅ User (Student) registration and login
-- ✅ Food Partner (Restaurant) registration and login  
-- ✅ Delivery Partner (Rider) registration and login
-- ✅ Role-based JWT authentication with httpOnly cookies
-- ✅ getMe endpoint for client-side route protection
+### Authentication & Roles
+- [x] Student registration, login, and logout
+- [x] Food partner registration, login, and logout
+- [x] Delivery partner registration, login, and logout
+- [x] Role-based JWT authentication with httpOnly cookies
+- [x] `/me` endpoint for session validation
 
-### Student User Experience
-- ✅ Browse food reels feed from food partners
-- ✅ Like/save food items
-- ✅ Add items to cart from feed (localStorage persistence)
-- ✅ View cart with quantity management
-- ✅ Checkout with hostel selection, delivery address, payment method
-- ✅ Place orders (status: pending)
-- ✅ View order history
-- ✅ Track order status in real-time
-- ✅ Cancel orders (pending/confirmed only)
+### Student Endpoints
+- [x] Browse food items feed
+- [x] Like and save food items
+- [x] Place orders with delivery details
+- [x] View order history
+- [x] Cancel orders (pending/confirmed only)
 
-### Food Partner Experience
-- ✅ Create and upload food items with videos
-- ✅ Set prices for food items
-- ✅ View incoming orders
-- ✅ Update order status: pending → confirmed → preparing → ready
-- ✅ Auto-assignment of first available delivery partner on "ready" status
+### Food Partner Endpoints
+- [x] Create food items with video upload
+- [x] Set prices for food items
+- [x] View incoming orders
+- [x] Update order status: pending → confirmed → preparing → ready
+- [x] Auto-assignment of delivery partner on "ready"
 
-### Delivery Partner Experience
-- ✅ View available and assigned orders
-- ✅ Accept/pickup orders (ready status)
-- ✅ Update delivery status: ready → on-the-way → delivered
-- ✅ Complete order fulfillment
+### Delivery Partner Endpoints
+- [x] View assigned orders
+- [x] Update delivery status: on-the-way → delivered
 
 ### Order Lifecycle
-- ✅ Pending: Order placed by student
-- ✅ Confirmed: Food partner accepts order
-- ✅ Preparing: Food partner is preparing
-- ✅ Ready: Food is ready, delivery partner assigned
-- ✅ On-the-Way: Delivery partner is en route
-- ✅ Delivered: Order completed
-- ✅ Cancelled: Student cancels pending/confirmed order
-
-### UI/UX Features
-- ✅ Red-black minimal theme with CSS variables
-- ✅ Dark/light mode support (prefers-color-scheme)
-- ✅ Responsive design for mobile and desktop
-- ✅ Smooth navigation with React Router
-- ✅ Bottom navigation: Home, Saved, Orders, Cart
-- ✅ Shared CSS architecture
-- ✅ Loading states and error handling
+- [x] pending — order placed
+- [x] confirmed — food partner accepted
+- [x] preparing — food being prepared
+- [x] ready — delivery partner assigned
+- [x] on-the-way — delivery in progress
+- [x] delivered — order complete
+- [x] cancelled — student cancelled
 
 ### Backend Infrastructure
-- ✅ Express.js server on port 3000
-- ✅ MongoDB Mongoose models for users, orders, food items
-- ✅ RESTful API with proper HTTP methods and status codes
-- ✅ Cookie-parser middleware for JWT storage
-- ✅ CORS enabled for localhost:5173 frontend
-- ✅ Secure password hashing with bcryptjs
-- ✅ Video upload to ImageKit via storageService
+- [x] Express.js REST API
+- [x] MongoDB Mongoose models
+- [x] Cookie-parser for JWT storage
+- [x] Configurable CORS
+- [x] bcryptjs password hashing
+- [x] ImageKit video upload service
+- [x] Multer for multipart handling
 
 ---
 
-## 🚀 Phase 2: ENHANCEMENTS (Recommended Next Steps)
+## Phase 2: Enhancements
 
-### Real-time Order Updates
-- [ ] WebSocket connection for live status updates
-- [ ] Push notifications to all role stakeholders
-- [ ] Order event streaming (created, accepted, preparing, etc.)
+### Real-time Updates
+- [ ] WebSocket for live order status streaming
+- [ ] Server-sent events for order notifications
+- [ ] Push notification integration
 
 ### Payment Integration
 - [ ] Razorpay/Stripe payment gateway
 - [ ] Campus wallet system
-- [ ] Transaction history tracking
+- [ ] Transaction history
 - [ ] Refund management for cancelled orders
-- [ ] Multiple payment methods (UPI, Credit Card, Wallet)
 
-### Food Discovery & Search
+### Food Discovery
 - [ ] Search food items by name
-- [ ] Filter by food partner (restaurant)
-- [ ] Food categories (Breakfast, Lunch, Snacks, etc.)
-- [ ] Ratings and reviews for food items
-- [ ] Top-rated/trending section
-- [ ] Personalized recommendations
+- [ ] Filter by food partner or category
+- [ ] Ratings and reviews API
+- [ ] Trending/popular items endpoint
 
-### Location & Delivery
-- [ ] Map-based delivery tracking
-- [ ] Real-time rider location updates
-- [ ] Zone-based delivery assignments
+### Delivery Optimization
+- [ ] Zone-based delivery partner assignment
 - [ ] Delivery time estimates
-- [ ] Multiple hostel/delivery zone support
+- [ ] Multiple hostel/zone support
+- [ ] Delivery partner availability status
 
-### Admin Dashboard
-- [ ] Admin registration and authentication
-- [ ] Platform analytics (orders, revenue, users)
-- [ ] Order management interface
-- [ ] User/partner verification
-- [ ] Dispute resolution
-- [ ] Platform settings and configuration
-
-### Analytics & Reporting
-- [ ] Order analytics (daily, weekly, monthly)
-- [ ] Revenue tracking
-- [ ] User engagement metrics
-- [ ] Partner performance metrics
-- [ ] Delivery performance tracking
+### Admin API
+- [ ] Admin authentication
+- [ ] Platform analytics endpoints
+- [ ] User/partner management
+- [ ] Dispute resolution workflow
 
 ---
 
-## 🔧 Phase 3: OPTIMIZATION & POLISH
+## Phase 3: Optimization & Quality
 
 ### Performance
-- [ ] Caching strategies for food feeds
-- [ ] Lazy loading for images/videos
-- [ ] API response optimization
-- [ ] Database indexing
-- [ ] CDN for media delivery
+- [ ] Redis caching for food feed
+- [ ] Database indexing strategy
+- [ ] API response pagination
+- [ ] Async video processing queue
 
-### Quality & Testing
-- [ ] Unit tests for backend APIs
+### Testing
+- [ ] Unit tests for controllers
 - [ ] Integration tests for order flow
-- [ ] Frontend component tests
-- [ ] E2E testing with Playwright
+- [ ] API contract tests
 - [ ] Load testing
 
-### Mobile App
-- [ ] React Native mobile application
-- [ ] PWA capabilities
-- [ ] Offline order preparation
-- [ ] Native notifications
-
 ### Security
-- [ ] Rate limiting on APIs
-- [ ] Input validation and sanitization
+- [ ] Rate limiting middleware
+- [ ] Input sanitization library
 - [ ] CSRF protection
-- [ ] Data encryption
 - [ ] Security audit
 
----
-
-## 📊 Technology Stack
-
-### Frontend
-- React 18 with Vite
-- React Router for SPA navigation
-- Axios for HTTP requests
-- localStorage for cart persistence
-- CSS with theme variables
-
-### Backend
-- Express.js 5.x
-- Node.js
-- MongoDB with Mongoose ODM
-- JWT for authentication
-- bcryptjs for password hashing
-- ImageKit for media storage
-
-### Deployment
-- Recommended: Vercel (Frontend) + Railway/Render (Backend)
-- Database: MongoDB Atlas
-- Media: ImageKit CDN
+### DevOps
+- [ ] Docker containerization
+- [ ] CI/CD pipeline
+- [ ] Health check endpoint
+- [ ] Structured logging
 
 ---
 
-## 🎯 Key Metrics to Track
+## Technology Stack
 
-1. **User Acquisition**: New registrations (students, partners)
-2. **Order Conversion**: Users adding to cart → completing orders
-3. **Platform Growth**: Daily orders, average order value
-4. **Partner Performance**: Response time, order completion rate
-5. **Delivery Efficiency**: Average delivery time, completion rate
-6. **Customer Satisfaction**: Ratings, repeat order rate
-
----
-
-## 📝 Notes
-
-- Current default price: ₹120 for food items (food partners can set custom prices)
-- Delivery fee: Fixed ₹30
-- Payment methods: Cash on Delivery, UPI, Wallet (can be extended)
-- Delivery assignment: Currently automatic on "ready" status (should implement queue system)
-- Cart persistence: localStorage (consider server-side for production)
-- Order polling: Currently loads once on mount (implement real-time updates with WebSocket)
+| Component | Technology |
+|-----------|------------|
+| Runtime | Node.js |
+| Framework | Express 5 |
+| Database | MongoDB + Mongoose |
+| Auth | JWT + httpOnly cookies |
+| Hashing | bcryptjs |
+| Media | ImageKit CDN |
+| Uploads | Multer |
 
 ---
 
-## 🎯 Success Criteria
+## Key Metrics
 
-- ✅ Three functional roles: Student, Food Partner, Delivery Partner
-- ✅ Complete order lifecycle: Pending → Delivered or Cancelled
-- ✅ Real-time order tracking for users
-- ✅ Easy food discovery and ordering for students
-- ✅ Efficient order management for partners
-- ✅ Scalable architecture for campus deployment
-- ✅ Mobile-friendly responsive design
+1. **User acquisition** — registrations per role
+2. **Order conversion** — orders placed vs. accounts created
+3. **Platform growth** — daily orders, average order value
+4. **Partner performance** — response time, completion rate
+5. **Delivery efficiency** — average delivery time
 
 ---
 
-**Last Updated**: Current Session  
-**Status**: Core Platform Complete ✓  
-**Next Priority**: Real-time updates & Payment Integration
+## Notes
+
+- Default food item price: ₹120 (partners can set custom prices)
+- Delivery fee: fixed ₹30
+- Payment methods: COD, UPI, Wallet (extensible)
+- Delivery assignment: automatic on "ready" status
+- Order status polling: client-driven (WebSocket planned for Phase 2)
+
+---
+
+**Status**: Core API complete  
+**Next priority**: Real-time updates and payment integration

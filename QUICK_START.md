@@ -1,16 +1,17 @@
-# JUUMATO - Quick Start Guide
+# JUUMATO API — Quick Start Guide
 
-## 🚀 Getting Started
+## Prerequisites
 
-### Prerequisites
-- Node.js 18+ installed
-- MongoDB connection string in `.env`
-- ImageKit API credentials for video uploads
+- Node.js 18+
+- MongoDB connection string
+- ImageKit API credentials (for food video uploads)
 
-### Environment Setup
+---
 
-#### Backend (.env)
+## Environment Setup
+
 Create `backend/.env`:
+
 ```env
 PORT=3000
 MONGODB_URI=mongodb+srv://your-connection-string
@@ -18,73 +19,72 @@ JWT_SECRET=your-secret-key
 IMAGEKIT_PUBLIC_KEY=your-public-key
 IMAGEKIT_PRIVATE_KEY=your-private-key
 IMAGEKIT_URL_ENDPOINT=your-url-endpoint
+CLIENT_ORIGIN=http://localhost:3000
 ```
 
-#### Frontend
-No environment file needed - connects to `http://localhost:3000`
+`CLIENT_ORIGIN` is a comma-separated list of allowed CORS origins for API clients.
 
 ---
 
-## 🏃 Running the App
+## Running the Server
 
-### 1. Start Backend
 ```bash
 cd backend
 npm install
-node server.js
-# Output should show: "server is running on port 3000" and "MongoDb connected"
-```
-
-### 2. Start Frontend (new terminal)
-```bash
-cd frontend
-npm install
 npm run dev
-# Open http://localhost:5173
+```
+
+Expected output:
+
+```
+MongoDb connected
+server is running on port 3000
 ```
 
 ---
 
-## 🧪 Testing the Complete Flow
+## Testing the Complete Flow
 
-### Test User 1: Student (Order Food)
-1. Go to http://localhost:5173
-2. Click "Register" → "Student"
-3. Fill form → Register
-4. Login with your credentials
-5. Browse reel feed
-6. Click cart button on any food item
-7. Go to Cart (bottom nav)
-8. Enter hostel name & address
-9. Place Order
-10. Track order in "Orders" tab
+Use Postman, Insomnia, or cURL. Enable cookie handling so JWT tokens persist across requests.
 
-### Test User 2: Food Partner (Manage Orders)
-1. Register as Food Partner
-2. Create food item with video + price
-3. Wait for orders from students
-4. View orders in dashboard
-5. Update status: pending → confirmed → preparing → ready
-6. See delivery partner auto-assigned
+### Role 1: Student (Order Food)
 
-### Test User 3: Delivery Partner (Deliver Orders)
-1. Register as Delivery Partner
-2. Go to Delivery Dashboard
-3. Accept orders with status "ready"
-4. Update status: ready → on-the-way → delivered
+1. `POST /api/auth/user/register` — create account
+2. `POST /api/auth/user/login` — receive JWT cookie
+3. `GET /api/food` — browse available food items
+4. `POST /api/food/like` — like a food item
+5. `POST /api/food/save` — save a food item
+6. `POST /api/orders` — place order with items, hostel, and delivery address
+7. `GET /api/orders/my` — view order history
+8. `PATCH /api/orders/:id/cancel` — cancel a pending order
+
+### Role 2: Food Partner (Manage Orders)
+
+1. `POST /api/auth/food-partner/register` — create partner account
+2. `POST /api/auth/food-partner/login` — receive JWT cookie
+3. `POST /api/food` — upload food item with video (multipart/form-data)
+4. `GET /api/orders/partner` — view incoming orders
+5. `PATCH /api/orders/:id/status` — progress order: `confirmed` → `preparing` → `ready`
+
+### Role 3: Delivery Partner (Deliver Orders)
+
+1. `POST /api/auth/delivery-partner/register` — create delivery account
+2. `POST /api/auth/delivery-partner/login` — receive JWT cookie
+3. `GET /api/orders/delivery` — view assigned orders
+4. `PATCH /api/orders/:id/delivery-status` — update: `on-the-way` → `delivered`
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 JUUmato/
 ├── backend/
 │   ├── src/
 │   │   ├── controller/
-│   │   │   ├── auth.controller.js      # Auth logic for all roles
-│   │   │   ├── food.controller.js      # Food items & reels
-│   │   │   └── order.controller.js     # Order CRUD & status
+│   │   │   ├── auth.controller.js
+│   │   │   ├── food.controller.js
+│   │   │   └── order.controller.js
 │   │   ├── model/
 │   │   │   ├── user.model.js
 │   │   │   ├── fooditem.model.js
@@ -92,142 +92,113 @@ JUUmato/
 │   │   │   ├── deliverypartner.model.js
 │   │   │   └── order.model.js
 │   │   ├── middleware/
-│   │   │   └── auth.middleware.js      # JWT verification
+│   │   │   └── auth.middleware.js
 │   │   ├── routes/
 │   │   │   ├── auth.routes.js
 │   │   │   ├── food.routes.js
 │   │   │   └── order.routes.js
 │   │   ├── services/
-│   │   │   └── storage.service.js      # ImageKit upload
+│   │   │   └── storage.service.js
 │   │   ├── db/
-│   │   │   └── db.js                   # MongoDB connection
-│   │   └── app.js                      # Express app setup
-│   ├── server.js                       # Server entry point
+│   │   │   └── db.js
+│   │   └── app.js
+│   ├── server.js
 │   └── package.json
-│
-├── frontend/
-│   ├── src/
-│   │   ├── pages/
-│   │   │   ├── auth/                   # Registration/Login pages
-│   │   │   ├── user/                   # Student pages
-│   │   │   ├── food-partner/           # Restaurant pages
-│   │   │   ├── delivery-partner/       # Rider pages
-│   │   │   └── general/                # Home, saved items
-│   │   ├── components/
-│   │   │   ├── ReelFeed.jsx            # Video feed component
-│   │   │   └── BottomNav.jsx           # Navigation bar
-│   │   ├── styles/
-│   │   │   ├── theme.css               # Theme variables
-│   │   │   ├── auth-shared.css         # Auth form styling
-│   │   │   └── ...other.css
-│   │   ├── routes/
-│   │   │   └── AppRoutes.jsx           # React Router config
-│   │   └── main.jsx                    # App entry point
-│   ├── vite.config.js
-│   └── package.json
-│
 └── README.md
 ```
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints Reference
 
 ### Authentication
-- `POST /api/auth/user/register` - Student registration
-- `POST /api/auth/user/login` - Student login
-- `POST /api/auth/food-partner/register` - Food partner registration
-- `POST /api/auth/food-partner/login` - Food partner login
-- `POST /api/auth/delivery-partner/register` - Delivery partner registration
-- `POST /api/auth/delivery-partner/login` - Delivery partner login
-- `GET /api/auth/me` - Get current user info
+
+- `POST /api/auth/user/register`
+- `POST /api/auth/user/login`
+- `GET /api/auth/user/logout`
+- `POST /api/auth/food-partner/register`
+- `POST /api/auth/food-partner/login`
+- `GET /api/auth/food-partner/logout`
+- `POST /api/auth/delivery-partner/register`
+- `POST /api/auth/delivery-partner/login`
+- `GET /api/auth/delivery-partner/logout`
+- `GET /api/auth/me`
 
 ### Food Items
-- `POST /api/food` - Create food item (food partner)
-- `GET /api/food` - Get all food items (public)
-- `PATCH /api/food/:id/like` - Like a food item
-- `PATCH /api/food/:id/save` - Save a food item
+
+- `POST /api/food` — create (multipart: video, name, description, price)
+- `GET /api/food` — list all items
+- `GET /api/food/partner` — list partner's items
+- `POST /api/food/like` — toggle like
+- `POST /api/food/save` — toggle save
+- `GET /api/food/save` — get saved items
 
 ### Orders
-- `POST /api/orders` - Create order (student)
-- `GET /api/orders/my` - Get user's orders (student)
-- `GET /api/orders/partner` - Get food partner's orders
-- `GET /api/orders/delivery` - Get delivery partner's orders
-- `PATCH /api/orders/:id/status` - Update order status (food partner)
-- `PATCH /api/orders/:id/delivery-status` - Update delivery status (delivery partner)
-- `PATCH /api/orders/:id/cancel` - Cancel order (student)
+
+- `POST /api/orders` — create order
+- `GET /api/orders/my` — student order history
+- `GET /api/orders/partner` — food partner orders
+- `GET /api/orders/delivery` — delivery partner orders
+- `PATCH /api/orders/:id/status` — update fulfillment status
+- `PATCH /api/orders/:id/delivery-status` — update delivery status
+- `PATCH /api/orders/:id/cancel` — cancel order
 
 ---
 
-## 💡 Key Features
+## Sample Request Bodies
 
-### For Students
-- Browse food reels (vertical scroll)
-- Quick add-to-cart from feed
-- Persistent cart (localStorage)
-- Easy checkout with delivery info
-- Real-time order tracking
-- Cancel pending orders
+**Register student:**
 
-### For Food Partners
-- Upload food videos with prices
-- Manage incoming orders
-- Progress through order statuses
-- Auto delivery partner assignment
+```json
+{
+  "name": "Ashish Kumar",
+  "email": "ashish@campus.edu",
+  "password": "secret123",
+  "phone": "9876543210"
+}
+```
 
-### For Delivery Partners
-- View available orders
-- Accept deliveries
-- Update delivery status
-- Track multiple orders
+**Place order:**
 
----
+```json
+{
+  "items": [
+    { "foodId": "507f1f77bcf86cd799439011", "quantity": 2 }
+  ],
+  "hostel": "North Hostel",
+  "deliveryAddress": "Room 101, Block A",
+  "paymentMethod": "cod"
+}
+```
 
-## 🎨 Design System
+**Update order status (food partner):**
 
-### Colors
-- **Primary**: Red (#d62424)
-- **Background**: Light (#f5f1f1) / Dark (#0d0a0a)
-- **Text**: Dark (#171212) / Light (in dark mode)
-
-### Status Colors
-- Pending: Orange (#f59e0b)
-- Confirmed: Blue (#3b82f6)
-- Preparing: Purple (#8b5cf6)
-- Ready: Teal (#14b8a6)
-- On-the-way: Red (#ef4444)
-- Delivered: Green (#22c55e)
+```json
+{ "status": "confirmed" }
+```
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
-### Backend won't start
-- Check MongoDB connection string
-- Ensure port 3000 is available
-- Check `.env` file exists with all required variables
+### Server won't start
 
-### Frontend won't build
-- Run `npm install` to ensure dependencies
-- Check Node.js version (18+)
-- Clear `node_modules` and reinstall if needed
+- Verify MongoDB connection string in `.env`
+- Ensure port 3000 is available (or set a different `PORT`)
+- Confirm all required environment variables are set
 
-### Can't login/register
-- Check MongoDB is running
-- Verify JWT_SECRET is set in .env
-- Check browser console for CORS errors
+### Authentication fails
 
-### Videos not uploading
-- Verify ImageKit credentials in .env
-- Check file size (max ~100MB)
-- Ensure video format is supported (mp4, webm, mov)
+- Check `JWT_SECRET` is configured
+- Ensure cookies are sent with subsequent requests
+- Verify the correct role middleware is used for each endpoint
+
+### Video upload fails
+
+- Confirm ImageKit credentials in `.env`
+- Use `multipart/form-data` with field name `video`
+- Supported formats: mp4, webm, mov
 
 ---
 
-## 📞 Support
-
-For issues or feature requests, check the FEATURE_ROADMAP.md for planned enhancements.
-
----
-
-**Happy Ordering! 🍕🍔🍜**
+For architecture details, see [ARCHITECTURE.md](./ARCHITECTURE.md).

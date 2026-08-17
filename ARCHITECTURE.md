@@ -1,46 +1,32 @@
-# JUUMATO - System Architecture
+# JUUMATO API — System Architecture
 
-## 🏗️ High-Level Architecture
+## High-Level Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     JUUMATO Platform                             │
+│                     JUUMATO REST API                             │
 └─────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────┐        ┌──────────────────┐        ┌──────────────────┐
 │   Student User   │        │  Food Partner    │        │ Delivery Partner │
-│   (Frontend)     │        │   (Frontend)     │        │   (Frontend)     │
+│   (API Client)   │        │   (API Client)   │        │   (API Client)   │
 └────────┬─────────┘        └────────┬─────────┘        └────────┬─────────┘
          │                            │                          │
-         │ HTTP/CORS                  │ HTTP/CORS                │ HTTP/CORS
+         │ HTTP + JWT Cookie          │ HTTP + JWT Cookie        │ HTTP + JWT Cookie
          │                            │                          │
          └────────────────────────────┴──────────────────────────┘
                                       │
                     ┌─────────────────▼─────────────────┐
                     │                                   │
-                    │    FRONTEND (React + Vite)        │
-                    │    • Vite Dev Server              │
-                    │    • React Router (SPA)           │
-                    │    • localStorage (cart)          │
-                    │    • Axios (HTTP client)          │
-                    │                                   │
-                    └─────────────────┬─────────────────┘
-                                      │
-                                      │ Port 5173
-                                      │ CORS: localhost:3000
-                                      │
-                    ┌─────────────────▼─────────────────┐
-                    │                                   │
-                    │    EXPRESS.JS BACKEND             │
-                    │    • Port 3000                    │
+                    │    EXPRESS.JS API SERVER          │
                     │    • REST API                     │
                     │    • JWT Authentication           │
                     │    • Cookie-based Sessions        │
                     │                                   │
                     │  ┌─────────────────────────────┐  │
                     │  │    API Routes               │  │
-                    │  │  ├─ /api/auth (6 endpoints) │  │
-                    │  │  ├─ /api/food (5 endpoints) │  │
+                    │  │  ├─ /api/auth (10 endpoints)│  │
+                    │  │  ├─ /api/food (6 endpoints) │  │
                     │  │  └─ /api/orders (7 endpoints)│  │
                     │  └─────────────────────────────┘  │
                     │                                   │
@@ -80,12 +66,11 @@
                     ┌─────────────────▼─────────────────┐
                     │                                   │
                     │    MONGODB                        │
-                    │    • Collections                  │
-                    │      ├─ users                     │
-                    │      ├─ foodpartners              │
-                    │      ├─ deliverypartners          │
-                    │      ├─ foods                     │
-                    │      └─ orders                    │
+                    │    • users                        │
+                    │    • foodpartners                 │
+                    │    • deliverypartners             │
+                    │    • foods                        │
+                    │    • orders                       │
                     │                                   │
                     └─────────────────────────────────┘
 
@@ -99,150 +84,135 @@
 
 ---
 
-## 🔐 Authentication Flow
+## Authentication Flow
 
 ```
 CLIENT                           SERVER
   │                                │
   ├─ POST /api/auth/user/register  │
   │─────────────────────────────→  │
-  │                           Hash password
-  │                           Create user
+  │                           Hash password (bcrypt)
+  │                           Create user document
   │                           Sign JWT token
   │                           Set httpOnly cookie
   │  ← ─────────────────────────── │
   │   JWT in httpOnly cookie        │
   │   User data in response         │
   │                                │
-  │                                │
   ├─ GET /api/food                 │
   │─────────────────────────────→  │
-  │  (automatic cookie sent)        │
-  │                           authMiddleware
-  │                           Verify JWT
-  │                           Lookup user/partner
-  │                           Set req.user/partner
+  │  (cookie sent automatically)    │
+  │                           authUserMiddleware
+  │                           Verify JWT signature
+  │                           Lookup user by ID
+  │                           Attach req.user
   │  ← ─────────────────────────── │
-  │   Food items + user context     │
+  │   Food items array              │
 ```
 
 ---
 
-## 🛒 Order Lifecycle Flow
+## Order Lifecycle Flow
 
 ```
 STUDENT          FOOD PARTNER      DELIVERY PARTNER       DATABASE
    │                  │                    │                  │
    ├──────────────────────────────────────────────→ Create Order
-   │ Place Order                           │        [status: pending]
-   │ (items, hostel, address)              │              │
+   │ POST /api/orders                      │        [status: pending]
    │                  │                    │              │
-   │                  ├─ Fetch Order ─────────────→ Read Order
+   │                  ├─ GET /partner ─────────────→ Read Order
    │                  │                   │        [status: pending]
-   │                  ├─ Update Status ─────────→ Update Order
+   │                  ├─ PATCH /status ──────────→ Update Order
    │                  │ (confirmed)        │      [status: confirmed]
    │                  │                    │              │
-   │                  ├─ Update Status ─────────→ Update Order
+   │                  ├─ PATCH /status ──────────→ Update Order
    │                  │ (preparing)        │      [status: preparing]
    │                  │                    │              │
-   │                  ├─ Update Status ─────────→ Update Order
+   │                  ├─ PATCH /status ──────────→ Update Order
    │                  │ (ready)            │      [status: ready]
-   │                  │                    │      [deliveryPartner: assigned]
+   │                  │                    │      [deliveryPartner assigned]
    │                  │                    │              │
-   │                  │                    ├─ Fetch Orders
-   │                  │                    │ (status: ready)
+   │                  │                    ├─ GET /delivery
    │                  │                    │              │
-   │                  │                    ├─ Update Status ──→ Update Order
+   │                  │                    ├─ PATCH /delivery-status
    │                  │                    │ (on-the-way)  [status: on-the-way]
    │                  │                    │              │
-   │                  │                    ├─ Update Status ──→ Update Order
+   │                  │                    ├─ PATCH /delivery-status
    │                  │                    │ (delivered)   [status: delivered]
    │                  │                    │              │
-   ├─ Track Order ──────────────────────────→ Read Order
-   │ (fetch status)   │                    │  [populated]
-   │                  │                    │              │
-   └────────────────────────────────────────────────────────→
+   ├─ GET /my ──────────────────────────────→ Read Order
+   │                  │                    │  [populated refs]
 ```
 
 ---
 
-## 🔄 Three-Role Authentication System
+## Three-Role Authentication System
 
-### Architecture Pattern
-Each role has three components:
+Each role has its own model, controller methods, routes, and middleware:
 
 ```
 ROLE: Student/User
 ├─ Model: userModel
-│  └─ Fields: name, email, password, phone, createdAt
-├─ Auth Controller: registerUser, loginUser, getMe
-├─ Route: /api/auth/user/register, /api/auth/user/login
-└─ Middleware: authUserMiddleware (req.user)
+│  └─ Fields: name, email, password, phone
+├─ Controller: registerUser, loginUser, logoutUser
+├─ Routes: /api/auth/user/register, /api/auth/user/login
+└─ Middleware: authUserMiddleware → req.user
 
-ROLE: Food Partner/Restaurant
+ROLE: Food Partner
 ├─ Model: foodPartnerModel
 │  └─ Fields: name, email, password, phone, address, contactname
-├─ Auth Controller: registerFoodPartner, loginFoodPartner
-├─ Route: /api/auth/food-partner/register, /api/auth/food-partner/login
-└─ Middleware: authfoodpartnermiddle (req.foodPartner)
+├─ Controller: registerfoodpartner, loginfoodpartner, logoutFoodPartner
+├─ Routes: /api/auth/food-partner/register, /api/auth/food-partner/login
+└─ Middleware: authfoodpartnermiddle → req.foodPartner
 
-ROLE: Delivery Partner/Rider
+ROLE: Delivery Partner
 ├─ Model: deliveryPartnerModel
 │  └─ Fields: name, email, password, phone, vehicle, zone
-├─ Auth Controller: registerDeliveryPartner, loginDeliveryPartner
-├─ Route: /api/auth/delivery-partner/register, /api/auth/delivery-partner/login
-└─ Middleware: authDeliveryPartnerMiddleware (req.deliveryPartner)
+├─ Controller: registerDeliveryPartner, loginDeliveryPartner, logoutDeliveryPartner
+├─ Routes: /api/auth/delivery-partner/register, /api/auth/delivery-partner/login
+└─ Middleware: authDeliveryPartnerMiddleware → req.deliveryPartner
 ```
 
-### JWT Claims & Role Detection
-```
-JWT Payload:
-{
-  id: ObjectId,      // Reference to specific role model
-  role: string       // Implicit: "user" | "foodPartner" | "deliveryPartner"
-}
+### JWT and Role Detection
 
-getMe Endpoint Logic:
-1. Verify JWT token
-2. Check userModel.findById(id) → if found: role = "user"
-3. Check foodPartnerModel.findById(id) → if found: role = "foodPartner"
-4. Check deliveryPartnerModel.findById(id) → if found: role = "deliveryPartner"
-5. Return { loggedIn: true, role, user/foodPartner/deliveryPartner }
+```javascript
+// JWT Payload
+{ id: ObjectId }
+
+// GET /api/auth/me logic:
+// 1. Verify JWT from cookie
+// 2. Try userModel.findById(id)       → role = "user"
+// 3. Try foodPartnerModel.findById(id) → role = "foodPartner"
+// 4. Try deliveryPartnerModel.findById(id) → role = "deliveryPartner"
+// 5. Return { loggedIn, role, profile }
 ```
 
 ---
 
-## 🗄️ Data Model Relationships
+## Data Model Relationships
 
 ```
 Order
 ├─ user ──→ User (many-to-one)
-│   └─ Can have multiple orders
-│
-├─ items (array)
+├─ items (embedded array)
 │   ├─ food ──→ Food (reference)
 │   ├─ foodPartner ──→ FoodPartner (reference)
-│   ├─ price (stored at order time)
+│   ├─ name, price (snapshot at order time)
 │   └─ quantity
-│
-└─ deliveryPartner ──→ DeliveryPartner (optional, many-to-one)
-   └─ Assigned when order status = "ready"
+└─ deliveryPartner ──→ DeliveryPartner (optional, assigned at "ready")
 
 Food
 ├─ foodPartner ──→ FoodPartner (many-to-one)
-│
-├─ likes (array)
-│   └─ User[] (many-to-many: users who liked)
-│
-└─ savedBy (array)
-   └─ User[] (many-to-many: users who saved)
+├─ likes ──→ User[] (many-to-many)
+└─ savedBy ──→ User[] (many-to-many)
 ```
 
 ---
 
-## 📡 API Response Patterns
+## API Response Patterns
 
-### Success Response (Order Creation)
+### Success (Order Creation)
+
 ```json
 {
   "message": "Order placed successfully",
@@ -267,164 +237,80 @@ Food
 }
 ```
 
-### Error Response
+### Error
+
 ```json
 {
-  "message": "Invalid order status",
-  "error": "Error message details"
+  "message": "Invalid order status"
 }
 ```
 
 ---
 
-## 🔌 Frontend-Backend Communication
+## Order Status Workflow
 
-### Cookie-Based JWT Flow
-```
-1. POST /api/auth/user/login
-   Response headers: Set-Cookie: jwt=<token>; HttpOnly; Secure; SameSite=Strict
-
-2. Subsequent requests with credentials:true
-   axios.get("/api/orders/my", { withCredentials: true })
-   Sends: Cookie: jwt=<token>
-
-3. Middleware verifies:
-   const token = req.cookies.jwt
-   const decoded = jwt.verify(token, JWT_SECRET)
-```
-
-### localStorage Architecture (Cart)
-```
-localStorage['juumato-cart'] = JSON.stringify([
-  {
-    foodId: "507f1f77bcf86cd799439011",
-    quantity: 2,
-    price: 120,
-    name: "Paneer Wrap"
-  },
-  {
-    foodId: "507f1f77bcf86cd799439012",
-    quantity: 1,
-    price: 150,
-    name: "Butter Chicken"
-  }
-])
-
-// On checkout:
-POST /api/orders with items from localStorage
-// Clear localStorage after successful order
-```
-
----
-
-## 🎯 Status Workflow
-
-### Complete Status Enum
-```
-'pending'      → Order placed, awaiting food partner
-'confirmed'    → Food partner accepted
-'preparing'    → Food is being prepared
-'ready'        → Food ready, delivery partner assigned
-'on-the-way'   → Delivery partner in transit
-'delivered'    → Order completed
-'cancelled'    → Order cancelled by user (only pending/confirmed)
-```
-
-### Transitions
 ```
 pending → confirmed → preparing → ready → on-the-way → delivered
    ↓
-cancelled (only from pending/confirmed)
+cancelled (only from pending or confirmed)
 ```
 
 ---
 
-## 🔍 Key Design Decisions
+## Key Design Decisions
 
 ### 1. Automatic Delivery Assignment
-- **Decision**: Assign first delivery partner when order status = "ready"
-- **Pro**: Simple logic, no queue management needed
-- **Con**: May not be scalable for high volume
-- **Future**: Implement queue system with zone-based assignment
+When order status reaches `ready`, the first available delivery partner is assigned automatically. Simple for MVP; a zone-based queue system would scale better.
 
-### 2. localStorage for Cart
-- **Decision**: Use browser localStorage for temporary cart
-- **Pro**: No backend calls needed, instant updates
-- **Con**: No persistence across devices, vulnerable to clearing
-- **Future**: Implement server-side cart API
+### 2. httpOnly Cookies for JWT
+JWT stored in httpOnly cookies rather than response bodies. Protects against XSS; requires `credentials: true` on CORS and cookie forwarding in API clients.
 
-### 3. httpOnly Cookies for JWT
-- **Decision**: Store JWT in httpOnly cookies, not localStorage
-- **Pro**: More secure against XSS attacks
-- **Con**: Requires credentials:true on CORS requests
-- **Trade-off**: Security > convenience
+### 3. Price Snapshot in Orders
+Item name and price are copied into the order document at creation time. Protects against menu price changes affecting historical orders.
 
 ### 4. Single MongoDB Database
-- **Decision**: All roles share one MongoDB instance
-- **Pro**: Simple setup, unified data
-- **Con**: No database-level isolation
-- **Future**: Multi-tenant architecture if needed
+All roles share one database instance. Simplifies development; multi-tenant isolation can be added later if needed.
 
-### 5. Three Separate Auth Flows
-- **Decision**: Each role has separate registration/login pages
-- **Pro**: Role-specific onboarding, clear UX
-- **Con**: Code duplication in auth pages
-- **Trade-off**: UX clarity > code DRY principle
+### 5. Separate Auth Flows per Role
+Each role has dedicated register/login endpoints and middleware. Clear separation of concerns at the cost of some route duplication.
 
 ---
 
-## 🚀 Deployment Architecture
+## Deployment Architecture
 
-### Recommended Setup
 ```
-┌─────────────────────┐
-│   Vercel            │  Frontend (React)
-│   - Next.js/Vite    │  - Automatic builds
-│   - CDN Edge        │  - Global distribution
-└──────────┬──────────┘
-           │ https
-           ▼
 ┌─────────────────────────────────────────────┐
-│   Railway/Render                            │
-│   - Express.js Backend                      │
-│   - Node.js runtime                         │
-│   - Environment variables                   │
+│   Railway / Render / Fly.io                 │
+│   • Express.js API                          │
+│   • Node.js runtime                         │
+│   • Environment variables                   │
 └──────────┬──────────────────────────────────┘
-           │ Database connection
+           │
            ▼
 ┌─────────────────────────────────────────────┐
 │   MongoDB Atlas                             │
-│   - Cloud database                          │
-│   - Automatic backups                       │
-│   - Cluster monitoring                      │
+│   • Managed cluster                         │
+│   • Automatic backups                       │
 └─────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────┐
 │   ImageKit                                  │
-│   - Media storage & CDN                     │
-│   - Video processing                        │
-│   - Real-time analytics                     │
+│   • Video storage & CDN                     │
 └─────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📊 Scalability Considerations
+## Scalability Considerations
 
-### Current Bottlenecks
-1. **Automatic delivery assignment**: Doesn't scale with multiple riders
-2. **No caching**: Every request hits database
-3. **Single MongoDB instance**: No read replicas
-4. **No async job queue**: Video processing is synchronous
+### Current Limitations
+1. Automatic delivery assignment does not scale with multiple riders
+2. No caching layer — every request hits MongoDB
+3. Single database instance with no read replicas
+4. Video processing is synchronous
 
-### Scaling Recommendations
-1. Implement Redis for caching
-2. Add message queue (Bull/RabbitMQ) for async jobs
-3. Database indexing on frequently queried fields
-4. Implement CDN caching for static assets
-5. Use connection pooling for database
-
----
-
-**Architecture Document Last Updated**: Current Session  
-**Version**: 1.0 - MVP
+### Recommended Improvements
+1. Redis for session caching and rate limiting
+2. Message queue (Bull/RabbitMQ) for async video processing
+3. Database indexes on `status`, `user`, `foodPartner` fields
+4. Zone-based delivery partner queue system
